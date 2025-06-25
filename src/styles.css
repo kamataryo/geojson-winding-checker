@@ -21,21 +21,59 @@ header {
     background-color: #2c3e50;
     color: white;
     padding: 1rem 2rem;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 header h1 {
     font-size: 2rem;
     font-weight: 300;
+    margin: 0;
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.github-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.github-icon {
+    font-size: 1.2rem;
+}
+
+.github-text {
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 main {
     flex: 1;
     padding: 2rem;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .drop-area {
@@ -92,7 +130,7 @@ main {
 .file-status {
     width: 100%;
     max-width: 800px;
-    margin: 2rem 0;
+    margin: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
@@ -166,7 +204,7 @@ main {
     width: 100%;
     max-width: 800px;
     text-align: center;
-    margin: 2rem 0;
+    margin: 0;
 }
 
 .execute-btn {
@@ -256,13 +294,23 @@ main {
         padding: 1rem;
     }
 
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
     header h1 {
         font-size: 1.5rem;
     }
 
+    .github-link {
+        align-self: center;
+    }
+
     main {
         padding: 1rem;
-        flex-direction: column;
+        gap: 1.5rem;
     }
 
     .drop-area {
