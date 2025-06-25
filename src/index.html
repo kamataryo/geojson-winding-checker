@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoJSON Winding 確認ツール</title>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>GeoJSON Winding 確認ツール</h1>
+        </header>
+
+        <main>
+            <div id="drop-area" class="drop-area">
+                <div class="drop-content">
+                    <div class="drop-icon">📁</div>
+                    <p class="drop-text">画像ファイル（PNG, JPG）とGeoJSONファイルをここにドロップしてください</p>
+                    <p class="drop-subtext">それぞれ1つずつ必要です</p>
+                </div>
+            </div>
+
+            <div id="canvas-container" class="canvas-container" style="display: none;">
+                <canvas id="main-canvas"></canvas>
+                <div class="controls">
+                    <button id="download-btn" class="download-btn">画像をダウンロード</button>
+                    <button id="reset-btn" class="reset-btn">リセット</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
