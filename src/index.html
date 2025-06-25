@@ -15,9 +15,37 @@
             <div id="drop-area" class="drop-area">
                 <div class="drop-content">
                     <div class="drop-icon">📁</div>
-                    <p class="drop-text">画像ファイル（PNG, JPG）とGeoJSONファイルをここにドロップしてください</p>
-                    <p class="drop-subtext">それぞれ1つずつ必要です</p>
+                    <p class="drop-text">画像ファイル（PNG, JPG）またはGeoJSONファイルをここにドロップしてください</p>
+                    <p class="drop-subtext">ファイルは個別にドロップできます</p>
                 </div>
+            </div>
+
+            <div id="file-status" class="file-status">
+                <div class="file-status-item">
+                    <div class="status-header">
+                        <span class="status-icon" id="image-status-icon">⭕</span>
+                        <span class="status-label">画像ファイル</span>
+                    </div>
+                    <div id="image-preview" class="image-preview" style="display: none;">
+                        <img id="preview-img" alt="画像プレビュー">
+                        <p class="file-name" id="image-file-name"></p>
+                    </div>
+                </div>
+
+                <div class="file-status-item">
+                    <div class="status-header">
+                        <span class="status-icon" id="geojson-status-icon">⭕</span>
+                        <span class="status-label">GeoJSONファイル</span>
+                    </div>
+                    <div id="geojson-dump" class="geojson-dump" style="display: none;">
+                        <textarea id="geojson-content" readonly placeholder="GeoJSONの内容がここに表示されます"></textarea>
+                        <p class="file-name" id="geojson-file-name"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="execute-section" class="execute-section">
+                <button id="execute-btn" class="execute-btn" disabled>重ね合わせ実行</button>
             </div>
 
             <div id="canvas-container" class="canvas-container" style="display: none;">

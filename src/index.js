@@ -15,6 +15,7 @@ class GeoJSONWindingChecker {
     init() {
         this.setupDropArea();
         this.setupButtons();
+        this.updateUI();
     }
 
     setupDropArea() {
@@ -42,9 +43,11 @@ class GeoJSONWindingChecker {
     }
 
     setupButtons() {
+        const executeBtn = document.getElementById('execute-btn');
         const downloadBtn = document.getElementById('download-btn');
         const resetBtn = document.getElementById('reset-btn');
 
+        executeBtn.addEventListener('click', this.executeVisualization.bind(this));
         downloadBtn.addEventListener('click', this.downloadImage.bind(this));
         resetBtn.addEventListener('click', this.reset.bind(this));
     }
@@ -57,43 +60,53 @@ class GeoJSONWindingChecker {
     handleDrop(e) {
         const files = Array.from(e.dataTransfer.files);
 
-        if (files.length !== 2) {
-            alert('画像ファイルとGeoJSONファイルを1つずつドロップしてください。');
+        if (files.length === 0) {
             return;
         }
 
-        const imageFiles = files.filter(file => file.type.startsWith('image/'));
-        const geojsonFiles = files.filter(file =>
-            file.type === 'application/json' ||
-            file.name.toLowerCase().endsWith('.geojson') ||
-            file.name.toLowerCase().endsWith('.json')
-        );
+        // 複数ファイルがドロップされた場合は最初のファイルのみ処理
+        const file = files[0];
 
-        if (imageFiles.length !== 1 || geojsonFiles.length !== 1) {
-            alert('画像ファイル1つとGeoJSONファイル1つが必要です。');
-            return;
+        if (this.isImageFile(file)) {
+            this.handleImageFile(file);
+        } else if (this.isGeoJSONFile(file)) {
+            this.handleGeoJSONFile(file);
+        } else {
+            alert('サポートされていないファイル形式です。画像ファイル（PNG, JPG等）またはGeoJSONファイル（.geojson, .json）をドロップしてください。');
         }
-
-        this.imageFile = imageFiles[0];
-        this.geojsonFile = geojsonFiles[0];
-
-        this.loadFiles();
     }
 
-    async loadFiles() {
+    isImageFile(file) {
+        return file.type.startsWith('image/');
+    }
+
+    isGeoJSONFile(file) {
+        return file.type === 'application/json' ||
+               file.name.toLowerCase().endsWith('.geojson') ||
+               file.name.toLowerCase().endsWith('.json');
+    }
+
+    async handleImageFile(file) {
         try {
-            // 画像の読み込み
+            this.imageFile = file;
             await this.loadImage();
-
-            // GeoJSONの読み込み
-            await this.loadGeoJSON();
-
-            // 描画処理
-            this.renderVisualization();
-
+            this.showImagePreview();
+            this.updateUI();
         } catch (error) {
-            console.error('ファイル読み込みエラー:', error);
-            alert('ファイルの読み込みに失敗しました。');
+            console.error('画像ファイル読み込みエラー:', error);
+            alert('画像ファイルの読み込みに失敗しました。');
+        }
+    }
+
+    async handleGeoJSONFile(file) {
+        try {
+            this.geojsonFile = file;
+            await this.loadGeoJSON();
+            this.showGeoJSONDump();
+            this.updateUI();
+        } catch (error) {
+            console.error('GeoJSONファイル読み込みエラー:', error);
+            alert('GeoJSONファイルの読み込みに失敗しました。');
         }
     }
 
@@ -130,9 +143,66 @@ class GeoJSONWindingChecker {
         });
     }
 
+    showImagePreview() {
+        const previewContainer = document.getElementById('image-preview');
+        const previewImg = document.getElementById('preview-img');
+        const fileName = document.getElementById('image-file-name');
+
+        previewImg.src = URL.createObjectURL(this.imageFile);
+        fileName.textContent = this.imageFile.name;
+        previewContainer.style.display = 'block';
+    }
+
+    showGeoJSONDump() {
+        const dumpContainer = document.getElementById('geojson-dump');
+        const contentTextarea = document.getElementById('geojson-content');
+        const fileName = document.getElementById('geojson-file-name');
+
+        contentTextarea.value = JSON.stringify(this.geojsonData, null, 2);
+        fileName.textContent = this.geojsonFile.name;
+        dumpContainer.style.display = 'block';
+    }
+
+    updateUI() {
+        // ステータスアイコンの更新
+        const imageStatusIcon = document.getElementById('image-status-icon');
+        const geojsonStatusIcon = document.getElementById('geojson-status-icon');
+
+        if (this.imageFile) {
+            imageStatusIcon.textContent = '✅';
+            imageStatusIcon.className = 'status-icon loaded';
+        } else {
+            imageStatusIcon.textContent = '⭕';
+            imageStatusIcon.className = 'status-icon empty';
+        }
+
+        if (this.geojsonFile) {
+            geojsonStatusIcon.textContent = '✅';
+            geojsonStatusIcon.className = 'status-icon loaded';
+        } else {
+            geojsonStatusIcon.textContent = '⭕';
+            geojsonStatusIcon.className = 'status-icon empty';
+        }
+
+        // 実行ボタンの有効/無効切り替え
+        const executeBtn = document.getElementById('execute-btn');
+        executeBtn.disabled = !(this.imageFile && this.geojsonFile);
+    }
+
+    executeVisualization() {
+        if (!this.imageFile || !this.geojsonFile) {
+            alert('画像ファイルとGeoJSONファイルの両方が必要です。');
+            return;
+        }
+
+        this.renderVisualization();
+    }
+
     renderVisualization() {
-        // ドロップエリアを非表示にし、キャンバスを表示
+        // ドロップエリアとファイル状態を非表示にし、キャンバスを表示
         document.getElementById('drop-area').style.display = 'none';
+        document.getElementById('file-status').style.display = 'none';
+        document.getElementById('execute-section').style.display = 'none';
         document.getElementById('canvas-container').style.display = 'flex';
 
         // キャンバスの設定
@@ -350,9 +420,20 @@ class GeoJSONWindingChecker {
         this.canvas = null;
         this.ctx = null;
 
+        // プレビューをクリア
+        const imagePreview = document.getElementById('image-preview');
+        const geojsonDump = document.getElementById('geojson-dump');
+        imagePreview.style.display = 'none';
+        geojsonDump.style.display = 'none';
+
         // UIをリセット
         document.getElementById('drop-area').style.display = 'flex';
+        document.getElementById('file-status').style.display = 'grid';
+        document.getElementById('execute-section').style.display = 'block';
         document.getElementById('canvas-container').style.display = 'none';
+
+        // ステータスを更新
+        this.updateUI();
     }
 }
 
