@@ -72,14 +72,22 @@ class GeoJSONWindingChecker {
             return;
         }
 
-        // 複数ファイルがドロップされた場合は最初のファイルのみ処理
-        const file = files[0];
+        // ファイルを種類別に分類
+        const imageFiles = files.filter(file => this.isImageFile(file));
+        const geojsonFiles = files.filter(file => this.isGeoJSONFile(file));
 
-        if (this.isImageFile(file)) {
-            this.handleImageFile(file);
-        } else if (this.isGeoJSONFile(file)) {
-            this.handleGeoJSONFile(file);
-        } else {
+        // 画像ファイルがある場合、最初のファイルを処理
+        if (imageFiles.length > 0) {
+            this.handleImageFile(imageFiles[0]);
+        }
+
+        // GeoJSONファイルがある場合、最初のファイルを処理
+        if (geojsonFiles.length > 0) {
+            this.handleGeoJSONFile(geojsonFiles[0]);
+        }
+
+        // サポートされていないファイルのみの場合はエラー表示
+        if (imageFiles.length === 0 && geojsonFiles.length === 0) {
             alert('サポートされていないファイル形式です。画像ファイル（PNG, JPG等）またはGeoJSONファイル（.geojson, .json）をドロップしてください。');
         }
     }
@@ -478,8 +486,13 @@ class GeoJSONWindingChecker {
     downloadImage() {
         if (!this.canvas) return;
 
+        // 画像ファイル名からベース名を取得
+        const imageBasename = this.imageFile ?
+            this.imageFile.name.replace(/\.[^/.]+$/, '') :
+            'geojson-visualization';
+
         const link = document.createElement('a');
-        link.download = 'geojson-visualization.png';
+        link.download = `${imageBasename}_overlay.png`;
         link.href = this.canvas.toDataURL();
         link.click();
     }
