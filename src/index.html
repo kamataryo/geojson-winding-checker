@@ -56,6 +56,15 @@
 
             <div id="canvas-container" class="canvas-container" style="display: none;">
                 <canvas id="main-canvas"></canvas>
+                <div class="filter-section">
+                    <label for="node-filter">ノード数フィルタ:</label>
+                    <input type="number" id="node-filter" min="0" value="0" placeholder="ノード数">
+                    <select id="filter-operator">
+                        <option value="below">以下</option>
+                        <option value="above">以上</option>
+                    </select>
+                    <span class="filter-help">のノードを持つfeatureを除外</span>
+                </div>
                 <div class="controls">
                     <button id="download-btn" class="download-btn">画像をダウンロード</button>
                     <button id="reset-btn" class="reset-btn">リセット</button>

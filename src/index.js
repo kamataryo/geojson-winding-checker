@@ -52,6 +52,14 @@ class GeoJSONWindingChecker {
         resetBtn.addEventListener('click', this.reset.bind(this));
     }
 
+    setupFilterControl() {
+        const nodeFilter = document.getElementById('node-filter');
+        const filterOperator = document.getElementById('filter-operator');
+
+        nodeFilter.addEventListener('input', this.applyFilter.bind(this));
+        filterOperator.addEventListener('change', this.applyFilter.bind(this));
+    }
+
     preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -216,6 +224,9 @@ class GeoJSONWindingChecker {
         // 画像を描画
         this.ctx.drawImage(this.imageData, 0, 0);
 
+        // フィルタコントロールをセットアップ
+        this.setupFilterControl();
+
         // GeoJSONを描画
         this.drawGeoJSON();
     }
@@ -226,9 +237,71 @@ class GeoJSONWindingChecker {
             return;
         }
 
+        // フィルタ値を取得
+        const nodeFilter = document.getElementById('node-filter');
+        const filterOperator = document.getElementById('filter-operator');
+        const filterValue = parseInt(nodeFilter.value) || 0;
+        const operator = filterOperator.value;
+
         this.geojsonData.features.forEach((feature, featureIndex) => {
-            this.drawFeature(feature, featureIndex);
+            // ノード数をチェック
+            const nodeCount = this.getFeatureNodeCount(feature);
+
+            // フィルタ条件をチェック
+            let shouldShow = true;
+            if (filterValue > 0) {
+                if (operator === 'below') {
+                    // 指定値以下のノード数を持つfeatureを除外
+                    shouldShow = nodeCount > filterValue;
+                } else if (operator === 'above') {
+                    // 指定値以上のノード数を持つfeatureを除外
+                    shouldShow = nodeCount < filterValue;
+                }
+            }
+
+            if (shouldShow) {
+                this.drawFeature(feature, featureIndex);
+            }
         });
+    }
+
+    getFeatureNodeCount(feature) {
+        const geometry = feature.geometry;
+
+        switch (geometry.type) {
+            case 'Point':
+                return 1;
+            case 'LineString':
+                return geometry.coordinates.length;
+            case 'Polygon':
+                // 外側のリングのノード数（最後の重複点を除外）
+                return geometry.coordinates[0].length - 1;
+            case 'MultiPoint':
+                return geometry.coordinates.length;
+            case 'MultiLineString':
+                return geometry.coordinates.reduce((total, lineCoords) => {
+                    return total + lineCoords.length;
+                }, 0);
+            case 'MultiPolygon':
+                return geometry.coordinates.reduce((total, polygonCoords) => {
+                    return total + (polygonCoords[0].length - 1);
+                }, 0);
+            default:
+                return 0;
+        }
+    }
+
+    applyFilter() {
+        if (!this.canvas || !this.ctx) return;
+
+        // キャンバスをクリア
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 画像を再描画
+        this.ctx.drawImage(this.imageData, 0, 0);
+
+        // フィルタを適用してGeoJSONを再描画
+        this.drawGeoJSON();
     }
 
     drawFeature(feature, featureIndex) {
@@ -297,10 +370,10 @@ class GeoJSONWindingChecker {
         coordinates.forEach((coord, index) => {
             const [x, y] = coord;
 
-            // 点を描画
+            // 点を描画（サイズを3→5に拡大）
             this.ctx.fillStyle = '#3498db';
             this.ctx.beginPath();
-            this.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            this.ctx.arc(x, y, 5, 0, 2 * Math.PI);
             this.ctx.fill();
 
             // ノード番号を描画
@@ -357,10 +430,10 @@ class GeoJSONWindingChecker {
         outerRing.forEach((coord, index) => {
             const [x, y] = coord;
 
-            // 点を描画
+            // 点を描画（サイズを3→5に拡大）
             this.ctx.fillStyle = '#2ecc71';
             this.ctx.beginPath();
-            this.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            this.ctx.arc(x, y, 5, 0, 2 * Math.PI);
             this.ctx.fill();
 
             // ノード番号を描画（最後の点は最初の点と同じなので除外）
@@ -371,30 +444,30 @@ class GeoJSONWindingChecker {
     }
 
     drawLabel(x, y, text, color) {
-        this.ctx.font = '12px Arial';
+        this.ctx.font = '16px Arial';
         this.ctx.fillStyle = 'white';
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = 2;
 
         const metrics = this.ctx.measureText(text);
-        const padding = 4;
+        const padding = 6;
         const labelX = x + 8;
         const labelY = y - 8;
 
         // 背景を描画
         this.ctx.fillRect(
             labelX - padding,
-            labelY - 12 - padding,
+            labelY - 16 - padding,
             metrics.width + padding * 2,
-            16 + padding * 2
+            20 + padding * 2
         );
 
         // 枠線を描画
         this.ctx.strokeRect(
             labelX - padding,
-            labelY - 12 - padding,
+            labelY - 16 - padding,
             metrics.width + padding * 2,
-            16 + padding * 2
+            20 + padding * 2
         );
 
         // テキストを描画
